@@ -129,7 +129,7 @@ void cpupool_put(struct cpupool *pool)
  * - unknown scheduler
  */
 static struct cpupool *cpupool_create(
-    int poolid, unsigned int sched_id, int *perr)
+    int poolid, unsigned int sched_id, int runq, int *perr)
 {
     struct cpupool *c;
     struct cpupool **q;
@@ -142,7 +142,8 @@ static struct cpupool *cpupool_create(
     /* One reference for caller, one reference for cpupool_destroy(). */
     atomic_set(&c->refcnt, 2);
 
-    cpupool_dprintk("cpupool_create(pool=%d,sched=%u)\n", poolid, sched_id);
+    cpupool_dprintk("cpupool_create(pool=%d,sched=%u,runq=%u)\n", 
+                     poolid, sched_id, runq);
 
     spin_lock(&cpupool_lock);
 
@@ -168,6 +169,7 @@ static struct cpupool *cpupool_create(
     if ( poolid == 0 )
     {
         c->sched = scheduler_get_default();
+        c->runq = runq; /* cpupool has the runq assigned by the user */
     }
     else
     {
@@ -178,14 +180,17 @@ static struct cpupool *cpupool_create(
             free_cpupool_struct(c);
             return NULL;
         }
+        c->runq = runq;
+        if ( !c->runq)
+            c->runq = OPT_RUNQUEUE_CORE; /* default runq = CORE */
     }
 
     *q = c;
 
     spin_unlock(&cpupool_lock);
 
-    cpupool_dprintk("Created cpupool %d with scheduler %s (%s)\n",
-                    c->cpupool_id, c->sched->name, c->sched->opt_name);
+    cpupool_dprintk("Created cpupool %d with scheduler %s (%s) and runq=%d\n",
+                    c->cpupool_id, c->sched->name, c->sched->opt_name, c->runq);
 
     *perr = 0;
     return c;
@@ -603,7 +608,7 @@ int cpupool_do_sysctl(struct xen_sysctl_cpupool_op *op)
 
         poolid = (op->cpupool_id == XEN_SYSCTL_CPUPOOL_PAR_ANY) ?
             CPUPOOLID_NONE: op->cpupool_id;
-        c = cpupool_create(poolid, op->sched_id, &ret);
+        c = cpupool_create(poolid, op->sched_id, op->runq, &ret);
         if ( c != NULL )
         {
             op->cpupool_id = c->cpupool_id;
@@ -798,7 +803,7 @@ static int __init cpupool_presmp_init(void)
 {
     int err;
     void *cpu = (void *)(long)smp_processor_id();
-    cpupool0 = cpupool_create(0, 0, &err);
+    cpupool0 = cpupool_create(0, 0, OPT_RUNQUEUE_CORE, &err);
     BUG_ON(cpupool0 == NULL);
     cpupool_put(cpupool0);
     cpu_callback(&cpu_nfb, CPU_ONLINE, cpu);

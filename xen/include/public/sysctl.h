@@ -551,6 +551,7 @@ struct xen_sysctl_cpupool_op {
     uint32_t op;          /* IN */
     uint32_t cpupool_id;  /* IN: CDIARM OUT: CI */
     uint32_t sched_id;    /* IN: C      OUT: I  */
+    uint32_t runq;        /* IN: C      OUT: I  */
     uint32_t domid;       /* IN: M              */
     uint32_t cpu;         /* IN: AR             */
     uint32_t n_dom;       /*            OUT: I  */

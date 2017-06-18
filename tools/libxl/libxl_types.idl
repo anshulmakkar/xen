@@ -192,6 +192,14 @@ libxl_scheduler = Enumeration("scheduler", [
     (8, "rtds"),
     ])
 
+libxl_runqbase = Enumeration("runqbase", [
+    (-1, "unknown"),
+    (0, "core"),
+    (1, "socket"),
+    (2, "node"),
+    (3, "all"),
+    ])
+
 # Consistent with SHUTDOWN_* in sched.h (apart from UNKNOWN)
 libxl_shutdown_reason = Enumeration("shutdown_reason", [
     (-1, "unknown"),
@@ -328,7 +336,8 @@ libxl_cpupoolinfo = Struct("cpupoolinfo", [
     ("pool_name",   string),
     ("sched",       libxl_scheduler),
     ("n_dom",       uint32),
-    ("cpumap",      libxl_bitmap)
+    ("cpumap",      libxl_bitmap),
+    ("runq",        libxl_runqbase)
     ], dir=DIR_OUT)
 
 libxl_channelinfo = Struct("channelinfo", [

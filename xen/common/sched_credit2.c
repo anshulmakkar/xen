@@ -282,7 +282,7 @@ static int __read_mostly opt_underload_balance_tolerance = 0;
 integer_param("credit2_balance_under", opt_underload_balance_tolerance);
 static int __read_mostly opt_overload_balance_tolerance = -3;
 integer_param("credit2_balance_over", opt_overload_balance_tolerance);
-
+#if 0
 /*
  * Runqueue organization.
  *
@@ -311,16 +311,21 @@ integer_param("credit2_balance_over", opt_overload_balance_tolerance);
  * either the same physical core, the same physical socket, the same NUMA
  * node, or just all of them, will be put together to form runqueues.
  */
-#define OPT_RUNQUEUE_CORE   0
-#define OPT_RUNQUEUE_SOCKET 1
-#define OPT_RUNQUEUE_NODE   2
-#define OPT_RUNQUEUE_ALL    3
-static const char *const opt_runqueue_str[] = {
-    [OPT_RUNQUEUE_CORE] = "core",
-    [OPT_RUNQUEUE_SOCKET] = "socket",
-    [OPT_RUNQUEUE_NODE] = "node",
-    [OPT_RUNQUEUE_ALL] = "all"
+enum runq_type
+{
+    OPT_RUNQUEUE_CORE
+    OPT_RUNQUEUE_SOCKET
+    OPT_RUNQUEUE_NODE
+    OPT_RUNQUEUE_ALL
 };
+typedef enum runq_type RUNQ_TYPE;
+static const char *const opt_runqueue_str[] = {
+    [RUNQ_TYPE.OPT_RUNQUEUE_CORE] = "core",
+    [RUNQ_TYPE.OPT_RUNQUEUE_SOCKET] = "socket",
+    [RUNQ_TYPE.OPT_RUNQUEUE_NODE] = "node",
+    [RUNQ_TYPE.OPT_RUNQUEUE_ALL] = "all"
+};
+#endif
 static int __read_mostly opt_runqueue = OPT_RUNQUEUE_CORE;
 
 static void parse_credit2_runqueue(const char *s)

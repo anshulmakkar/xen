@@ -1718,15 +1718,15 @@ static PyObject *pyxc_cpupool_create(XcObject *self,
                                      PyObject *args,
                                      PyObject *kwds)
 {
-    uint32_t cpupool = 0, sched = XEN_SCHEDULER_CREDIT;
+    uint32_t cpupool = 0, sched = XEN_SCHEDULER_CREDIT, runq = 0;
 
-    static char *kwd_list[] = { "pool", "sched", NULL };
+    static char *kwd_list[] = { "pool", "sched", "runq", NULL };
 
     if ( !PyArg_ParseTupleAndKeywords(args, kwds, "|ii", kwd_list, &cpupool,
-                                      &sched))
+                                      &sched, &runq))
         return NULL;
 
-    if ( xc_cpupool_create(self->xc_handle, &cpupool, sched) < 0 )
+    if ( xc_cpupool_create(self->xc_handle, &cpupool, sched, runq) < 0 )
         return pyxc_error_to_exception(self->xc_handle);
 
     return PyInt_FromLong(cpupool);

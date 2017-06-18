@@ -21,6 +21,52 @@ extern cpumask_t cpupool_free_cpus;
 #define SCHED_DEFAULT_RATELIMIT_US 1000
 extern int sched_ratelimit_us;
 
+/* define runq types */
+/*
+ * Runqueue organization.
+ *
+ * The various cpus are to be assigned each one to a runqueue, and we
+ * want that to happen basing on topology. At the moment, it is possible
+ * to choose to arrange runqueues to be:
+ *
+ * - per-core: meaning that there will be one runqueue per each physical
+ *             core of the host. This will happen if the opt_runqueue
+ *             parameter is set to 'core';
+ *
+ * - per-socket: meaning that there will be one runqueue per each physical
+ *               socket (AKA package, which often, but not always, also
+ *               matches a NUMA node) of the host; This will happen if
+ *               the opt_runqueue parameter is set to 'socket';
+ *
+ * - per-node: meaning that there will be one runqueue per each physical
+ *             NUMA node of the host. This will happen if the opt_runqueue
+ *             parameter is set to 'node';
+ *
+ * - global: meaning that there will be only one runqueue to which all the
+ *           (logical) processors of the host belong. This will happen if
+ *           the opt_runqueue parameter is set to 'all'.
+ *
+ * Depending on the value of opt_runqueue, therefore, cpus that are part of
+ * either the same physical core, the same physical socket, the same NUMA
+ * node, or just all of them, will be put together to form runqueues.
+ * runq_type enum should be in consistency with tools/libxl/_libxl_types.h 
+ * libxl_runqbase enum.
+ */
+ enum runq_type
+ {
+     OPT_RUNQUEUE_CORE = 0,
+     OPT_RUNQUEUE_SOCKET,
+     OPT_RUNQUEUE_NODE,
+     OPT_RUNQUEUE_ALL,
+     OPT_RUNQUEUE_UNDEFINED = 99
+};
+typedef enum runq_type RUNQ_TYPE;
+static const char *const opt_runqueue_str[] = {
+    [OPT_RUNQUEUE_CORE] = "core",
+    [OPT_RUNQUEUE_SOCKET] = "socket",
+    [OPT_RUNQUEUE_NODE] = "node",
+    [OPT_RUNQUEUE_ALL] = "all"
+};
 
 /*
  * In order to allow a scheduler to remap the lock->cpu mapping,
@@ -185,6 +231,7 @@ struct cpupool
     struct cpupool   *next;
     unsigned int     n_dom;
     struct scheduler *sched;
+    RUNQ_TYPE         runq;          /* need to change it into enum */
     atomic_t         refcnt;
 };
 

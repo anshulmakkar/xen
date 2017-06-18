@@ -6155,7 +6155,7 @@ int libxl_get_freecpus(libxl_ctx *ctx, libxl_bitmap *cpumap)
 int libxl_cpupool_create(libxl_ctx *ctx, const char *name,
                          libxl_scheduler sched,
                          libxl_bitmap cpumap, libxl_uuid *uuid,
-                         uint32_t *poolid)
+                         uint32_t *poolid, libxl_runqbase runq)
 {
     GC_INIT(ctx);
     int rc;
@@ -6169,7 +6169,8 @@ int libxl_cpupool_create(libxl_ctx *ctx, const char *name,
         return ERROR_NOMEM;
     }
 
-    rc = xc_cpupool_create(ctx->xch, poolid, sched);
+    LOG(DEBUG, "Call xc_cpupool_create 123runq=%d \n", runq);
+    rc = xc_cpupool_create(ctx->xch, poolid, sched, runq);
     if (rc) {
         LOGEV(ERROR, rc, "Could not create cpupool");
         GC_FREE;
