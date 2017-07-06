@@ -1835,7 +1835,9 @@ struct scheduler *scheduler_get_default(void)
     return &ops;
 }
 
-struct scheduler *scheduler_alloc(unsigned int sched_id, int *perr)
+struct scheduler *scheduler_alloc(unsigned int sched_id, 
+                                  struct sched_param cpupool_sched_param,
+                                  int *perr)
 {
     int i;
     struct scheduler *sched;
@@ -1851,7 +1853,7 @@ struct scheduler *scheduler_alloc(unsigned int sched_id, int *perr)
     if ( (sched = xmalloc(struct scheduler)) == NULL )
         return NULL;
     memcpy(sched, schedulers[i], sizeof(*sched));
-    if ( (*perr = SCHED_OP(sched, init)) != 0 )
+    if ( (*perr = SCHED_OP(sched, init, cpupool_sched_parm)) != 0 )
     {
         xfree(sched);
         sched = NULL;

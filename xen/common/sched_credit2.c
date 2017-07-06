@@ -390,6 +390,7 @@ struct csched2_private {
     unsigned int load_precision_shift;
     unsigned int load_window_shift;
     unsigned ratelimit_us; /* each cpupool can have its own ratelimit */
+    unsigned runq; /* cpupool has its own type of runq */
 };
 
 /*
@@ -683,10 +684,10 @@ cpu_to_runqueue(struct csched2_private *prv, unsigned int cpu)
         BUG_ON(cpu_to_socket(cpu) == XEN_INVALID_SOCKET_ID ||
                cpu_to_socket(peer_cpu) == XEN_INVALID_SOCKET_ID);
 
-        if ( opt_runqueue == OPT_RUNQUEUE_ALL ||
-             (opt_runqueue == OPT_RUNQUEUE_CORE && same_core(peer_cpu, cpu)) ||
-             (opt_runqueue == OPT_RUNQUEUE_SOCKET && same_socket(peer_cpu, cpu)) ||
-             (opt_runqueue == OPT_RUNQUEUE_NODE && same_node(peer_cpu, cpu)) )
+        if ( prv->runq == OPT_RUNQUEUE_ALL ||
+             (prv->runq == OPT_RUNQUEUE_CORE && same_core(peer_cpu, cpu)) ||
+             (prv->runq == OPT_RUNQUEUE_SOCKET && same_socket(peer_cpu, cpu)) ||
+             (prv->runq == OPT_RUNQUEUE_NODE && same_node(peer_cpu, cpu)) )
             break;
     }
 
@@ -3065,7 +3066,7 @@ csched2_deinit_pdata(const struct scheduler *ops, void *pcpu, int cpu)
 }
 
 static int
-csched2_init(struct scheduler *ops)
+csched2_init(struct scheduler *ops, struct sched_param param)
 {
     int i;
     struct csched2_private *prv;
@@ -3119,6 +3120,8 @@ csched2_init(struct scheduler *ops)
     }
     /* initialize ratelimit */
     prv->ratelimit_us = sched_ratelimit_us;
+    
+    prv->runq = param.u.credit2.runq;
 
     prv->load_precision_shift = opt_load_precision_shift;
     prv->load_window_shift = opt_load_window_shift - LOADAVG_GRANULARITY_SHIFT;

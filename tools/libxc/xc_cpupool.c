@@ -46,6 +46,7 @@ int xc_cpupool_create(xc_interface *xch,
     sysctl.u.cpupool_op.cpupool_id = (*ppoolid == XC_CPUPOOL_POOLID_ANY) ?
         XEN_SYSCTL_CPUPOOL_PAR_ANY : *ppoolid;
     sysctl.u.cpupool_op.sched_id = sched_id;
+    sysctl.u.cpupool_op.sched_param = sched_param;
     if ( (err = do_sysctl_save(xch, &sysctl)) != 0 )
         return err;
 

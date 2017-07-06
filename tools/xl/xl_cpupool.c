@@ -43,6 +43,8 @@ int main_cpupoolcreate(int argc, char **argv)
     char *name = NULL;
     uint32_t poolid;
     libxl_scheduler sched = 0;
+    libxl_cpupool_runq runq = 0;
+    libxl_sched_params sched_params;
     XLU_ConfigList *cpus;
     XLU_ConfigList *nodes;
     int n_cpus, n_nodes, i, n;
@@ -207,16 +209,41 @@ int main_cpupoolcreate(int argc, char **argv)
     } else
         n_cpus = 0;
 
+    if (!xlu_cfg_get_string (config, "runq", &buf, 0)) {
+        if ((libxl_cpupool_runq_from_string(buf, &runq)) < 0) {
+            fprintf(stderr, "Unknown runqueue option\n");
+            goto out_cfg;
+        }
+    } else 
+        runq = 0; //todo replace it with macro.
+
     libxl_uuid_generate(&uuid);
 
     printf("Using config file \"%s\"\n", config_src);
     printf("cpupool name:   %s\n", name);
     printf("scheduler:      %s\n", libxl_scheduler_to_string(sched));
     printf("number of cpus: %d\n", n_cpus);
-
+    printf("runq per pool: %d\n", runq);
+#if 0
+    swtich(sched)
+    {
+        sched_param.sched_type = sched;
+        case CREDIT:
+        break;
+        case CREDIT2:
+            sched_param.credit2.runq_per_pool = runq;
+        break;
+        case ARINC653:
+        break;
+        case RTDS:
+        break;
+        default:
+        printf("unknown scheduler selected \n");
+    }
+#endif
     if (!dryrun_only) {
         poolid = LIBXL_CPUPOOL_POOLID_ANY;
-        if (libxl_cpupool_create(ctx, name, sched, cpumap, &uuid, &poolid)) {
+        if (libxl_cpupool_create(ctx, name, sched, cpumap, &uuid, &poolid, sched_param)) {
             fprintf(stderr, "error on creating cpupool\n");
             goto out_cfg;
         }

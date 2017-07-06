@@ -332,7 +332,19 @@ libxl_cpupoolinfo = Struct("cpupoolinfo", [
     ("sched",       libxl_scheduler),
     ("n_dom",       uint32),
     ("cpumap",      libxl_bitmap)
+    ("cpupool_runq", libxl_cpupool_runq)
     ], dir=DIR_OUT)
+
+# todo establish consistency.
+libxl_cpupool_runq = Enumeration("cpupool_runq", [
+    (-1, "unknown"),
+    (0, "core"),
+    (1, ""),
+    (2, ""),
+    (3, ""),
+    (4, ""),
+    (5, ""),
+    ])
 
 libxl_channelinfo = Struct("channelinfo", [
     ("backend", string),
@@ -916,8 +928,29 @@ libxl_sched_credit_params = Struct("sched_credit_params", [
 
 libxl_sched_credit2_params = Struct("sched_credit2_params", [
     ("ratelimit_us", integer),
+    ("runq_per_pool", libxl_cpupool_runq),
     ], dispose_fn=None)
-
+n
+libxl_scheduler = Enumeration("scheduler", [
+    (0, "UNKNOWN"),
+    (4, "SEDF"),
+    (5, "CREDIT"),
+    (6, "CREDIT2"),
+    (7, "ARINC653"),
+    (8, "RTDS"),
+    (9, "NULL"),
+ 
+libxl_scheduler_params = Struct("sched_params", [
+    ("u", KeyedUnion(None, libxl_scheduler, "sched_type",
+          [("credit2", libxl_sched_credit2_params),
+           ("credit", libxl_sched_credit_params),
+           ("unknown", None),
+           ("sedf", None),
+           ("arinc653", None),
+           ("rtds", None),
+          ])),
+     ])
+    
 libxl_domain_remus_info = Struct("domain_remus_info",[
     ("interval",             integer),
     ("allow_unsafe",         libxl_defbool),

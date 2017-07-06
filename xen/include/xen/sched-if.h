@@ -183,6 +183,21 @@ struct scheduler {
 
 #define REGISTER_SCHEDULER(x) static const struct scheduler *x##_entry \
   __used_section(".data.schedulers") = &x;
+struct sched_param
+{
+    typedef union
+    {
+        typedef struct credit2
+        {
+            unsigned ratelimit_us;
+            unsigned runq;
+        }credit2_param;
+        typedef struct credit
+        {
+            unsinged ratelimit_us;
+        }credit_param;
+    }u;
+};
 
 struct cpupool
 {
@@ -193,7 +208,12 @@ struct cpupool
     unsigned int     n_dom;
     struct scheduler *sched;
     atomic_t         refcnt;
-};
+    /* cpupool specific sched param */
+    //todo do we require all sched parameter here or only runq.
+    //but if its only runq, then future extensibility
+    //will be sacrifised.
+    sched_param cpupool_sched_param;
+    };
 
 #define cpupool_online_cpumask(_pool) \
     (((_pool) == NULL) ? &cpu_online_map : (_pool)->cpu_valid)

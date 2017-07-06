@@ -1216,6 +1216,7 @@ typedef xen_sysctl_cputopo_t xc_cputopo_t;
 typedef xen_sysctl_numainfo_t xc_numainfo_t;
 typedef xen_sysctl_meminfo_t xc_meminfo_t;
 typedef xen_sysctl_pcitopoinfo_t xc_pcitopoinfo_t;
+typedef struct xen_sysctl_sched_param_t xc_schedparam;
 
 typedef uint32_t xc_cpu_to_node_t;
 typedef uint32_t xc_cpu_to_socket_t;

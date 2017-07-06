@@ -555,6 +555,8 @@ struct xen_sysctl_cpupool_op {
     uint32_t cpu;         /* IN: AR             */
     uint32_t n_dom;       /*            OUT: I  */
     struct xenctl_bitmap cpumap; /*     OUT: IF */
+    /* IN: scheduler param relevant for cpupool */
+    xen_sysctl_sched_param_t xen_cpupool_sched_param; 
 };
 typedef struct xen_sysctl_cpupool_op xen_sysctl_cpupool_op_t;
 DEFINE_XEN_GUEST_HANDLE(xen_sysctl_cpupool_op_t);
@@ -642,6 +644,7 @@ DEFINE_XEN_GUEST_HANDLE(xen_sysctl_credit_schedule_t);
 
 struct xen_sysctl_credit2_schedule {
     unsigned ratelimit_us;
+    unsigned runq;
 };
 typedef struct xen_sysctl_credit2_schedule xen_sysctl_credit2_schedule_t;
 DEFINE_XEN_GUEST_HANDLE(xen_sysctl_credit2_schedule_t);
@@ -664,6 +667,18 @@ struct xen_sysctl_scheduler_op {
 };
 typedef struct xen_sysctl_scheduler_op xen_sysctl_scheduler_op_t;
 DEFINE_XEN_GUEST_HANDLE(xen_sysctl_scheduler_op_t);
+
+//todo why not use xen_sysctl_scheduler_op
+struct xen_sysctl_sched_param {
+    union {
+        struct xen_sysctl_credit2_schedule sched_credit2;
+        struct xen_sysctl_credit_schedule sched_credit;
+        struct xen_sysctl_sched_arinc653 {
+            XEN_GUEST_HANDLE_64(xen_sysctl_arinc653_schedule_t) schedule;
+        } sched_arinc653;
+    } u;
+};
+typedef struct xen_sysctl_sched_param xen_sysctl_sched_param_t;
 
 /*
  * Output format of gcov data:
