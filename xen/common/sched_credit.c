@@ -2216,7 +2216,7 @@ csched_dump(const struct scheduler *ops)
 }
 
 static int
-csched_init(struct scheduler *ops)
+csched_init(struct scheduler *ops, void * sched_param)
 {
     struct csched_private *prv;
 

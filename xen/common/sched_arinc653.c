@@ -343,7 +343,7 @@ arinc653_sched_get(
  *                  </ul>
  */
 static int
-a653sched_init(struct scheduler *ops)
+a653sched_init(struct scheduler *ops, void * sched_param)
 {
     a653sched_priv_t *prv;
 

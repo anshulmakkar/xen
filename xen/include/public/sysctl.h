@@ -538,7 +538,34 @@ struct xen_sysctl_numainfo {
 typedef struct xen_sysctl_numainfo xen_sysctl_numainfo_t;
 DEFINE_XEN_GUEST_HANDLE(xen_sysctl_numainfo_t);
 
+struct xen_sysctl_credit_schedule {
+    /* Length of timeslice in milliseconds */
+#define XEN_SYSCTL_CSCHED_TSLICE_MAX 1000
+#define XEN_SYSCTL_CSCHED_TSLICE_MIN 1
+    unsigned tslice_ms;
+    unsigned ratelimit_us;
+};
+typedef struct xen_sysctl_credit_schedule xen_sysctl_credit_schedule_t;
+DEFINE_XEN_GUEST_HANDLE(xen_sysctl_credit_schedule_t);
+
+struct xen_sysctl_credit2_schedule {
+    unsigned ratelimit_us;
+    unsigned runq;
+};
+typedef struct xen_sysctl_credit2_schedule xen_sysctl_credit2_schedule_t;
+DEFINE_XEN_GUEST_HANDLE(xen_sysctl_credit2_schedule_t);
+
+
 /* XEN_SYSCTL_cpupool_op */
+struct xen_sysctl_sched_param {
+    union {
+        struct xen_sysctl_credit2_schedule sched_credit2;
+        struct xen_sysctl_credit_schedule sched_credit;
+    } u;
+};
+typedef struct xen_sysctl_sched_param xen_sysctl_sched_param_t;
+DEFINE_XEN_GUEST_HANDLE(xen_sysctl_sched_param_t);
+
 #define XEN_SYSCTL_CPUPOOL_OP_CREATE                1  /* C */
 #define XEN_SYSCTL_CPUPOOL_OP_DESTROY               2  /* D */
 #define XEN_SYSCTL_CPUPOOL_OP_INFO                  3  /* I */
@@ -555,6 +582,8 @@ struct xen_sysctl_cpupool_op {
     uint32_t cpu;         /* IN: AR             */
     uint32_t n_dom;       /*            OUT: I  */
     struct xenctl_bitmap cpumap; /*     OUT: IF */
+    /* IN: scheduler param relevant for cpupool */
+    xen_sysctl_sched_param_t sched_param; 
 };
 typedef struct xen_sysctl_cpupool_op xen_sysctl_cpupool_op_t;
 DEFINE_XEN_GUEST_HANDLE(xen_sysctl_cpupool_op_t);
@@ -629,22 +658,6 @@ DEFINE_XEN_GUEST_HANDLE(xen_sysctl_arinc653_schedule_t);
  */
 #define XEN_SYSCTL_SCHED_RATELIMIT_MAX 500000
 #define XEN_SYSCTL_SCHED_RATELIMIT_MIN 100
-
-struct xen_sysctl_credit_schedule {
-    /* Length of timeslice in milliseconds */
-#define XEN_SYSCTL_CSCHED_TSLICE_MAX 1000
-#define XEN_SYSCTL_CSCHED_TSLICE_MIN 1
-    unsigned tslice_ms;
-    unsigned ratelimit_us;
-};
-typedef struct xen_sysctl_credit_schedule xen_sysctl_credit_schedule_t;
-DEFINE_XEN_GUEST_HANDLE(xen_sysctl_credit_schedule_t);
-
-struct xen_sysctl_credit2_schedule {
-    unsigned ratelimit_us;
-};
-typedef struct xen_sysctl_credit2_schedule xen_sysctl_credit2_schedule_t;
-DEFINE_XEN_GUEST_HANDLE(xen_sysctl_credit2_schedule_t);
 
 /* XEN_SYSCTL_scheduler_op */
 /* Set or get info? */

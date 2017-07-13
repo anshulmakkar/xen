@@ -621,7 +621,7 @@ rt_cpu_pick(const struct scheduler *ops, struct vcpu *vc)
  * Init/Free related code
  */
 static int
-rt_init(struct scheduler *ops)
+rt_init(struct scheduler *ops, void * sched_param)
 {
     int rc = -ENOMEM;
     struct rt_private *prv = xzalloc(struct rt_private);
