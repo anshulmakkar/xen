@@ -75,7 +75,7 @@ int vmce_restore_vcpu(struct vcpu *v, const struct hvm_vmce_vcpu *ctxt)
     unsigned long guest_mcg_cap;
 
     if ( boot_cpu_data.x86_vendor == X86_VENDOR_INTEL )
-        guest_mcg_cap = INTEL_GUEST_MCG_CAP;
+        guest_mcg_cap = INTEL_GUEST_MCG_CAP | MCG_LMCE_P;
     else
         guest_mcg_cap = AMD_GUEST_MCG_CAP;
 
@@ -91,6 +91,7 @@ int vmce_restore_vcpu(struct vcpu *v, const struct hvm_vmce_vcpu *ctxt)
     v->arch.vmce.mcg_cap = ctxt->caps;
     v->arch.vmce.bank[0].mci_ctl2 = ctxt->mci_ctl2_bank0;
     v->arch.vmce.bank[1].mci_ctl2 = ctxt->mci_ctl2_bank1;
+    v->arch.vmce.mcg_ext_ctl = ctxt->mcg_ext_ctl;
 
     return 0;
 }
@@ -198,6 +199,26 @@ int vmce_rdmsr(uint32_t msr, uint64_t *val)
         if ( cur->arch.vmce.mcg_cap & MCG_CTL_P )
             *val = ~0ULL;
         mce_printk(MCE_VERBOSE, "MCE: %pv: rd MCG_CTL %#"PRIx64"\n", cur, *val);
+        break;
+
+    case MSR_IA32_MCG_EXT_CTL:
+        /*
+         * If MCG_LMCE_P is present in guest MSR_IA32_MCG_CAP, the LMCE and LOCK
+         * bits are always set in guest MSR_IA32_FEATURE_CONTROL by Xen, so it
+         * does not need to check them here.
+         */
+        if ( cur->arch.vmce.mcg_cap & MCG_LMCE_P )
+        {
+            *val = cur->arch.vmce.mcg_ext_ctl;
+            mce_printk(MCE_VERBOSE, "MCE: %pv: rd MCG_EXT_CTL %#"PRIx64"\n",
+                       cur, *val);
+        }
+        else
+        {
+            ret = -1;
+            mce_printk(MCE_VERBOSE, "MCE: %pv: rd MCG_EXT_CTL, not supported\n",
+                       cur);
+        }
         break;
 
     default:
@@ -309,6 +330,16 @@ int vmce_wrmsr(uint32_t msr, uint64_t val)
         mce_printk(MCE_VERBOSE, "MCE: %pv: MCG_CAP is r/o\n", cur);
         break;
 
+    case MSR_IA32_MCG_EXT_CTL:
+        if ( (cur->arch.vmce.mcg_cap & MCG_LMCE_P) &&
+             !(val & ~MCG_EXT_CTL_LMCE_EN) )
+            cur->arch.vmce.mcg_ext_ctl = val;
+        else
+            ret = -1;
+        mce_printk(MCE_VERBOSE, "MCE: %pv: wr MCG_EXT_CTL %"PRIx64"%s\n",
+                   cur, val, (ret == -1) ? ", not supported" : "");
+        break;
+
     default:
         ret = mce_bank_msr(cur, msr) ? bank_mce_wrmsr(cur, msr, val) : 0;
         break;
@@ -327,7 +358,8 @@ static int vmce_save_vcpu_ctxt(struct domain *d, hvm_domain_context_t *h)
         struct hvm_vmce_vcpu ctxt = {
             .caps = v->arch.vmce.mcg_cap,
             .mci_ctl2_bank0 = v->arch.vmce.bank[0].mci_ctl2,
-            .mci_ctl2_bank1 = v->arch.vmce.bank[1].mci_ctl2
+            .mci_ctl2_bank1 = v->arch.vmce.bank[1].mci_ctl2,
+            .mcg_ext_ctl = v->arch.vmce.mcg_ext_ctl,
         };
 
         err = hvm_save_entry(VMCE_VCPU, v->vcpu_id, h, &ctxt);
@@ -433,13 +465,22 @@ static int vcpu_fill_mc_msrs(struct vcpu *v, uint64_t mcg_status,
 }
 
 int fill_vmsr_data(struct mcinfo_bank *mc_bank, struct domain *d,
-                   uint64_t gstatus, bool broadcast)
+                   uint64_t gstatus, int vmce_vcpuid)
 {
     struct vcpu *v = d->vcpu[0];
+    bool broadcast = (vmce_vcpuid == VMCE_INJECT_BROADCAST);
     int ret, err;
 
     if ( mc_bank->mc_domid == DOMID_INVALID )
         return -EINVAL;
+
+    if ( broadcast )
+        gstatus &= ~MCG_STATUS_LMCE;
+    else if ( gstatus & MCG_STATUS_LMCE )
+    {
+        ASSERT(vmce_vcpuid >= 0 && vmce_vcpuid < d->max_vcpus);
+        v = d->vcpu[vmce_vcpuid];
+    }
 
     /*
      * vMCE with the actual error information is injected to vCPU0,
@@ -506,3 +547,20 @@ int unmmap_broken_page(struct domain *d, mfn_t mfn, unsigned long gfn)
     return rc;
 }
 
+int vmce_enable_mca_cap(struct domain *d, uint64_t cap)
+{
+    struct vcpu *v;
+
+    if ( cap & ~XEN_HVM_MCA_CAP_MASK )
+        return -EINVAL;
+
+    if ( cap & XEN_HVM_MCA_CAP_LMCE )
+    {
+        if ( !lmce_support )
+            return -EINVAL;
+        for_each_vcpu(d, v)
+            v->arch.vmce.mcg_cap |= MCG_LMCE_P;
+    }
+
+    return 0;
+}
