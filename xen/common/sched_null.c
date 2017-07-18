@@ -123,7 +123,8 @@ static inline bool vcpu_check_affinity(struct vcpu *v, unsigned int cpu)
     return cpumask_test_cpu(cpu, cpumask_scratch_cpu(cpu));
 }
 
-static int null_init(struct scheduler *ops)
+static int null_init(struct scheduler *ops,
+                     xen_sysctl_sched_param_t * sched_param)
 {
     struct null_private *prv;
 

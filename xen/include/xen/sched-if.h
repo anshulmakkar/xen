@@ -136,7 +136,8 @@ struct scheduler {
 
     int          (*global_init)    (void);
 
-    int          (*init)           (struct scheduler *);
+    int          (*init)           (struct scheduler *,
+                                    xen_sysctl_sched_param_t *);
     void         (*deinit)         (struct scheduler *);
 
     void         (*free_vdata)     (const struct scheduler *, void *);

@@ -1706,7 +1706,7 @@ void __init scheduler_init(void)
     register_cpu_notifier(&cpu_schedule_nfb);
 
     printk("Using scheduler: %s (%s)\n", ops.name, ops.opt_name);
-    if ( SCHED_OP(&ops, init) )
+    if ( SCHED_OP(&ops, init, NULL) )
         panic("scheduler returned error on init");
 
     if ( sched_ratelimit_us &&
@@ -1835,7 +1835,9 @@ struct scheduler *scheduler_get_default(void)
     return &ops;
 }
 
-struct scheduler *scheduler_alloc(unsigned int sched_id, int *perr)
+struct scheduler *scheduler_alloc(unsigned int sched_id,
+                                  xen_sysctl_sched_param_t * param,
+                                  int *perr)
 {
     int i;
     struct scheduler *sched;
@@ -1851,7 +1853,7 @@ struct scheduler *scheduler_alloc(unsigned int sched_id, int *perr)
     if ( (sched = xmalloc(struct scheduler)) == NULL )
         return NULL;
     memcpy(sched, schedulers[i], sizeof(*sched));
-    if ( (*perr = SCHED_OP(sched, init)) != 0 )
+    if ( (*perr = SCHED_OP(sched, init, param)) != 0 )
     {
         xfree(sched);
         sched = NULL;

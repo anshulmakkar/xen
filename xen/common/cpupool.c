@@ -129,12 +129,13 @@ void cpupool_put(struct cpupool *pool)
  * - unknown scheduler
  */
 static struct cpupool *cpupool_create(
-    int poolid, unsigned int sched_id, int *perr)
+    int poolid, unsigned int sched_id,
+    xen_sysctl_sched_param_t * param,
+    int *perr)
 {
     struct cpupool *c;
     struct cpupool **q;
     int last = 0;
-
     *perr = -ENOMEM;
     if ( (c = alloc_cpupool_struct()) == NULL )
         return NULL;
@@ -171,7 +172,7 @@ static struct cpupool *cpupool_create(
     }
     else
     {
-        c->sched = scheduler_alloc(sched_id, perr);
+        c->sched = scheduler_alloc(sched_id, param, perr);
         if ( c->sched == NULL )
         {
             spin_unlock(&cpupool_lock);
@@ -599,11 +600,12 @@ int cpupool_do_sysctl(struct xen_sysctl_cpupool_op *op)
 
     case XEN_SYSCTL_CPUPOOL_OP_CREATE:
     {
+        xen_sysctl_sched_param_t param = op->sched_param;
         int poolid;
 
         poolid = (op->cpupool_id == XEN_SYSCTL_CPUPOOL_PAR_ANY) ?
             CPUPOOLID_NONE: op->cpupool_id;
-        c = cpupool_create(poolid, op->sched_id, &ret);
+        c = cpupool_create(poolid, op->sched_id, &param, &ret);
         if ( c != NULL )
         {
             op->cpupool_id = c->cpupool_id;
@@ -798,7 +800,7 @@ static int __init cpupool_presmp_init(void)
 {
     int err;
     void *cpu = (void *)(long)smp_processor_id();
-    cpupool0 = cpupool_create(0, 0, &err);
+    cpupool0 = cpupool_create(0, 0, NULL, &err);
     BUG_ON(cpupool0 == NULL);
     cpupool_put(cpupool0);
     cpu_callback(&cpu_nfb, CPU_ONLINE, cpu);
