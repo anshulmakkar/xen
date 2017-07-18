@@ -334,6 +334,15 @@ libxl_cpupoolinfo = Struct("cpupoolinfo", [
     ("cpumap",      libxl_bitmap)
     ], dir=DIR_OUT)
 
+# consistent with sched_credit2.c
+libxl_credit2_runqueue = Enumeration("credit2_runqueue", [
+    (-1, "UNKNOWN"),
+    (0, "CORE"),
+    (1, "SOCKET"),
+    (2, "NODE"),
+    (3, "ALL"),
+    ])
+
 libxl_channelinfo = Struct("channelinfo", [
     ("backend", string),
     ("backend_id", uint32),
@@ -917,7 +926,18 @@ libxl_sched_credit_params = Struct("sched_credit_params", [
 
 libxl_sched_credit2_params = Struct("sched_credit2_params", [
     ("ratelimit_us", integer),
+    ("runqueue", libxl_credit2_runqueue),
     ], dispose_fn=None)
+ 
+libxl_scheduler_params = Struct("sched_params", [
+    ("u", KeyedUnion(None, libxl_scheduler, "sched_type",
+          [("credit2", libxl_sched_credit2_params),
+           ("credit", libxl_sched_credit_params),
+           ("null", None),
+           ("arinc653", None),
+           ("rtds", None),
+          ])),
+     ])
 
 libxl_domain_remus_info = Struct("domain_remus_info",[
     ("interval",             integer),
