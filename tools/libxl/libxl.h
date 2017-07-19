@@ -2130,7 +2130,7 @@ int libxl_get_freecpus(libxl_ctx *ctx, libxl_bitmap *cpumap);
 int libxl_cpupool_create(libxl_ctx *ctx, const char *name,
                          libxl_scheduler sched,
                          libxl_bitmap cpumap, libxl_uuid *uuid,
-                         uint32_t *poolid);
+                         uint32_t *poolid, libxl_scheduler_params sched_param);
 int libxl_cpupool_destroy(libxl_ctx *ctx, uint32_t poolid);
 int libxl_cpupool_rename(libxl_ctx *ctx, const char *name, uint32_t poolid);
 int libxl_cpupool_cpuadd(libxl_ctx *ctx, uint32_t poolid, int cpu);

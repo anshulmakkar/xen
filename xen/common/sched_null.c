@@ -124,7 +124,7 @@ static inline bool vcpu_check_affinity(struct vcpu *v, unsigned int cpu)
 }
 
 static int null_init(struct scheduler *ops,
-                     xen_sysctl_sched_param_t * sched_param)
+                     xen_sysctl_sched_param_t sched_param)
 {
     struct null_private *prv;
 

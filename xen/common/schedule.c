@@ -1836,7 +1836,7 @@ struct scheduler *scheduler_get_default(void)
 }
 
 struct scheduler *scheduler_alloc(unsigned int sched_id,
-                                  xen_sysctl_sched_param_t * param,
+                                  xen_sysctl_sched_param_t param,
                                   int *perr)
 {
     int i;

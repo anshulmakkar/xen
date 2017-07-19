@@ -558,6 +558,7 @@ DEFINE_XEN_GUEST_HANDLE(xen_sysctl_credit2_schedule_t);
 
 /* XEN_SYSCTL_cpupool_op */
 struct xen_sysctl_sched_param {
+    unsigned sched_type;
     union {
         struct xen_sysctl_credit2_schedule sched_credit2;
         struct xen_sysctl_credit_schedule sched_credit;

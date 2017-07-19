@@ -130,7 +130,7 @@ int libxl_get_freecpus(libxl_ctx *ctx, libxl_bitmap *cpumap)
 int libxl_cpupool_create(libxl_ctx *ctx, const char *name,
                          libxl_scheduler sched,
                          libxl_bitmap cpumap, libxl_uuid *uuid,
-                         uint32_t *poolid, libxl_scheduler_param sched_param)
+                         uint32_t *poolid, libxl_scheduler_params sched_param)
 {
     GC_INIT(ctx);
     int rc;
@@ -138,7 +138,7 @@ int libxl_cpupool_create(libxl_ctx *ctx, const char *name,
     xs_transaction_t t;
     char *uuid_string;
     uint32_t xcpoolid;
-    xc_schedparam_t xc_sched_param = sched_param;
+    xc_schedparam_t xc_sched_param; 
 
     /* Accept '0' as 'any poolid' for backwards compatibility */
     if ( *poolid == LIBXL_CPUPOOL_POOLID_ANY
@@ -152,7 +152,7 @@ int libxl_cpupool_create(libxl_ctx *ctx, const char *name,
         GC_FREE;
         return ERROR_NOMEM;
     }
-
+    xc_sched_param = *(xc_schedparam_t*)&sched_param;
     rc = xc_cpupool_create(ctx->xch, &xcpoolid, sched, xc_sched_param);
     if (rc) {
         LOGEV(ERROR, rc, "Could not create cpupool");

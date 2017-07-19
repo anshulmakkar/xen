@@ -192,7 +192,7 @@ libxl_scheduler = Enumeration("scheduler", [
     (7, "arinc653"),
     (8, "rtds"),
     (9, "null"),
-    ])
+    ], init_val ="LIBXL_SCHEDULER_CREDIT2")
 
 # Consistent with SHUTDOWN_* in sched.h (apart from UNKNOWN)
 libxl_shutdown_reason = Enumeration("shutdown_reason", [
@@ -331,7 +331,8 @@ libxl_cpupoolinfo = Struct("cpupoolinfo", [
     ("pool_name",   string),
     ("sched",       libxl_scheduler),
     ("n_dom",       uint32),
-    ("cpumap",      libxl_bitmap)
+    ("cpumap",      libxl_bitmap),
+    ("sched_param", libxl_scheduler_params),
     ], dir=DIR_OUT)
 
 # consistent with sched_credit2.c
@@ -929,13 +930,15 @@ libxl_sched_credit2_params = Struct("sched_credit2_params", [
     ("runqueue", libxl_credit2_runqueue),
     ], dispose_fn=None)
  
-libxl_scheduler_params = Struct("sched_params", [
-    ("u", KeyedUnion(None, libxl_scheduler, "sched_type",
+libxl_scheduler_params = Struct("scheduler_params", [
+    ("u", KeyedUnion(None, libxl_scheduler, "scheduler_type",
           [("credit2", libxl_sched_credit2_params),
            ("credit", libxl_sched_credit_params),
            ("null", None),
            ("arinc653", None),
            ("rtds", None),
+           ("unknown", None),
+           ("sedf", None),
           ])),
      ])
 

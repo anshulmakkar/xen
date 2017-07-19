@@ -130,7 +130,7 @@ void cpupool_put(struct cpupool *pool)
  */
 static struct cpupool *cpupool_create(
     int poolid, unsigned int sched_id,
-    xen_sysctl_sched_param_t * param,
+    xen_sysctl_sched_param_t param,
     int *perr)
 {
     struct cpupool *c;
@@ -600,12 +600,12 @@ int cpupool_do_sysctl(struct xen_sysctl_cpupool_op *op)
 
     case XEN_SYSCTL_CPUPOOL_OP_CREATE:
     {
-        xen_sysctl_sched_param_t param = op->sched_param;
         int poolid;
+        xen_sysctl_sched_param_t param = op->sched_param;
 
         poolid = (op->cpupool_id == XEN_SYSCTL_CPUPOOL_PAR_ANY) ?
             CPUPOOLID_NONE: op->cpupool_id;
-        c = cpupool_create(poolid, op->sched_id, &param, &ret);
+        c = cpupool_create(poolid, op->sched_id, param, &ret);
         if ( c != NULL )
         {
             op->cpupool_id = c->cpupool_id;
