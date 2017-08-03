@@ -1676,6 +1676,7 @@ void __init scheduler_init(void)
 {
     struct domain *idle_domain;
     int i;
+    xen_sysctl_sched_param_t param;
 
     open_softirq(SCHEDULE_SOFTIRQ, schedule);
 
@@ -1704,9 +1705,10 @@ void __init scheduler_init(void)
     if ( cpu_schedule_up(0) )
         BUG();
     register_cpu_notifier(&cpu_schedule_nfb);
-
+    
+    param.sched_type = -1;
     printk("Using scheduler: %s (%s)\n", ops.name, ops.opt_name);
-    if ( SCHED_OP(&ops, init, NULL) )
+    if ( SCHED_OP(&ops, init, param) )
         panic("scheduler returned error on init");
 
     if ( sched_ratelimit_us &&

@@ -227,7 +227,7 @@ int main_cpupoolcreate(int argc, char **argv)
     printf("cpupool name:   %s\n", name);
     printf("scheduler:      %s\n", libxl_scheduler_to_string(sched));
     printf("number of cpus: %d\n", n_cpus);
-    if (sched == LIBX_SCHEDULER_CREDIT2)
+    if (sched == LIBXL_SCHEDULER_CREDIT2)
         printf("runq per pool: %d\n", runq);
 
     if (!dryrun_only) {
@@ -500,6 +500,7 @@ int main_cpupoolnumasplit(int argc, char **argv)
     libxl_cpupoolinfo *poolinfo;
     libxl_cputopology *topology;
     libxl_dominfo info;
+    libxl_scheduler_params sched_param;
 
     SWITCH_FOREACH_OPT(opt, "", NULL, "cpupool-numa-split", 0) {
         /* No options */
@@ -603,7 +604,8 @@ int main_cpupoolnumasplit(int argc, char **argv)
         xasprintf(&name, "Pool-node%d", node);
         libxl_uuid_generate(&uuid);
         poolid = 0;
-        if (libxl_cpupool_create(ctx, name, sched, cpumap, &uuid, &poolid, NULL)) {
+        sched_param.scheduler_type = LIBXL_SCHEDULER_UNKNOWN; 
+        if (libxl_cpupool_create(ctx, name, sched, cpumap, &uuid, &poolid, sched_param)) {
             fprintf(stderr, "error on creating cpupool\n");
             goto out;
         }

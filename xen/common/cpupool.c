@@ -800,7 +800,9 @@ static int __init cpupool_presmp_init(void)
 {
     int err;
     void *cpu = (void *)(long)smp_processor_id();
-    cpupool0 = cpupool_create(0, 0, NULL, &err);
+    xen_sysctl_sched_param_t param;
+    param.sched_type = -1;
+    cpupool0 = cpupool_create(0, 0, param, &err);
     BUG_ON(cpupool0 == NULL);
     cpupool_put(cpupool0);
     cpu_callback(&cpu_nfb, CPU_ONLINE, cpu);

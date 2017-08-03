@@ -194,6 +194,15 @@ libxl_scheduler = Enumeration("scheduler", [
     (9, "null"),
     ], init_val ="LIBXL_SCHEDULER_CREDIT2")
 
+# consistent with sched_credit2.c
+libxl_credit2_runqueue = Enumeration("credit2_runqueue", [
+    (-1, "UNKNOWN"),
+    (0, "CORE"),
+    (1, "SOCKET"),
+    (2, "NODE"),
+    (3, "ALL"),
+    ])
+
 # Consistent with SHUTDOWN_* in sched.h (apart from UNKNOWN)
 libxl_shutdown_reason = Enumeration("shutdown_reason", [
     (-1, "unknown"),
@@ -326,6 +335,28 @@ libxl_dominfo = Struct("dominfo",[
     ("domain_type", libxl_domain_type),
     ], dir=DIR_OUT)
 
+libxl_sched_credit_params = Struct("sched_credit_params", [
+    ("tslice_ms", integer),
+    ("ratelimit_us", integer),
+    ], dispose_fn=None)
+
+libxl_sched_credit2_params = Struct("sched_credit2_params", [
+    ("ratelimit_us", integer),
+    ("runqueue", libxl_credit2_runqueue),
+    ], dispose_fn=None)
+ 
+libxl_scheduler_params = Struct("scheduler_params", [
+    ("u", KeyedUnion(None, libxl_scheduler, "scheduler_type",
+          [("credit2", libxl_sched_credit2_params),
+           ("credit", libxl_sched_credit_params),
+           ("null", None),
+           ("arinc653", None),
+           ("rtds", None),
+           ("unknown", None),
+           ("sedf", None),
+          ])),
+     ])
+
 libxl_cpupoolinfo = Struct("cpupoolinfo", [
     ("poolid",      uint32),
     ("pool_name",   string),
@@ -335,16 +366,7 @@ libxl_cpupoolinfo = Struct("cpupoolinfo", [
     ("sched_param", libxl_scheduler_params),
     ], dir=DIR_OUT)
 
-# consistent with sched_credit2.c
-libxl_credit2_runqueue = Enumeration("credit2_runqueue", [
-    (-1, "UNKNOWN"),
-    (0, "CORE"),
-    (1, "SOCKET"),
-    (2, "NODE"),
-    (3, "ALL"),
-    ])
-
-libxl_channelinfo = Struct("channelinfo", [
+ibxl_channelinfo = Struct("channelinfo", [
     ("backend", string),
     ("backend_id", uint32),
     ("frontend", string),
@@ -919,28 +941,6 @@ libxl_pcitopology = Struct("pcitopology", [
     ("devfn", uint8),
     ("node", uint32),
     ], dir=DIR_OUT)
-
-libxl_sched_credit_params = Struct("sched_credit_params", [
-    ("tslice_ms", integer),
-    ("ratelimit_us", integer),
-    ], dispose_fn=None)
-
-libxl_sched_credit2_params = Struct("sched_credit2_params", [
-    ("ratelimit_us", integer),
-    ("runqueue", libxl_credit2_runqueue),
-    ], dispose_fn=None)
- 
-libxl_scheduler_params = Struct("scheduler_params", [
-    ("u", KeyedUnion(None, libxl_scheduler, "scheduler_type",
-          [("credit2", libxl_sched_credit2_params),
-           ("credit", libxl_sched_credit_params),
-           ("null", None),
-           ("arinc653", None),
-           ("rtds", None),
-           ("unknown", None),
-           ("sedf", None),
-          ])),
-     ])
 
 libxl_domain_remus_info = Struct("domain_remus_info",[
     ("interval",             integer),

@@ -3125,8 +3125,8 @@ csched2_init(struct scheduler *ops, xen_sysctl_sched_param_t sched_param)
     /* not need of type checking here if sched_para.type = credit2. Code
      * block is here means we have type as credit2.
      */
-    if (sched_param->u.sched_credit2.runq != OPT_RUNQUEUE_UNKNOWN)
-        prv->runqueue = sched_param->u.sched_credit2.runq;
+    if (sched_param.u.sched_credit2.runq != OPT_RUNQUEUE_UNKNOWN)
+        prv->runqueue = sched_param.u.sched_credit2.runq;
     else
         /* assign the default runq */
         prv->runqueue = opt_runqueue;
