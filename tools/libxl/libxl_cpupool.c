@@ -130,7 +130,7 @@ int libxl_get_freecpus(libxl_ctx *ctx, libxl_bitmap *cpumap)
 int libxl_cpupool_create(libxl_ctx *ctx, const char *name,
                          libxl_scheduler sched,
                          libxl_bitmap cpumap, libxl_uuid *uuid,
-                         uint32_t *poolid, libxl_scheduler_params sched_param)
+                         uint32_t *poolid, const libxl_scheduler_params *sched_params)
 {
     GC_INIT(ctx);
     int rc;
@@ -152,8 +152,19 @@ int libxl_cpupool_create(libxl_ctx *ctx, const char *name,
         GC_FREE;
         return ERROR_NOMEM;
     }
-    xc_sched_param = *(xc_schedparam_t*)&sched_param;
-    rc = xc_cpupool_create(ctx->xch, &xcpoolid, sched, xc_sched_param);
+    if (sched_params)
+    {
+        xc_sched_param.sched_type = sched_params->scheduler_type;
+        xc_sched_param.u.sched_credit2.ratelimit_us = 
+                                                    sched_params->u.credit2.ratelimit_us;
+        xc_sched_param.u.sched_credit2.runq = sched_params->u.credit2.runqueue;
+        xc_sched_param.u.sched_credit.tslice_ms = sched_params->u.credit.tslice_ms;
+        xc_sched_param.u.sched_credit.ratelimit_us = sched_params->u.credit.ratelimit_us; 
+    }
+    else 
+        xc_sched_param.u.sched_credit2.runq = LIBXL_CREDIT2_RUNQUEUE_DEFAULT; 
+
+    rc = xc_cpupool_create(ctx->xch, &xcpoolid, sched, &xc_sched_param);
     if (rc) {
         LOGEV(ERROR, rc, "Could not create cpupool");
         GC_FREE;

@@ -37,7 +37,7 @@ static int do_sysctl_save(xc_interface *xch, struct xen_sysctl *sysctl)
 int xc_cpupool_create(xc_interface *xch,
                       uint32_t *ppoolid,
                       uint32_t sched_id,
-                      xc_schedparam_t sched_param)
+                      xc_schedparam_t * sched_params)
 {
     int err;
     DECLARE_SYSCTL;
@@ -47,7 +47,7 @@ int xc_cpupool_create(xc_interface *xch,
     sysctl.u.cpupool_op.cpupool_id = (*ppoolid == XC_CPUPOOL_POOLID_ANY) ?
         XEN_SYSCTL_CPUPOOL_PAR_ANY : *ppoolid;
     sysctl.u.cpupool_op.sched_id = sched_id;
-    sysctl.u.cpupool_op.sched_param = sched_param;
+    sysctl.u.cpupool_op.sched_param = *sched_params;
     if ( (err = do_sysctl_save(xch, &sysctl)) != 0 )
         return err;
 

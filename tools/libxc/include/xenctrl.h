@@ -1085,13 +1085,13 @@ typedef xen_sysctl_sched_param_t xc_schedparam_t;
  * @parm xc_handle a handle to an open hypervisor interface
  * @parm ppoolid pointer to the new cpupool id (in/out)
  * @parm sched_id id of scheduler to use for pool
- * @parm sched_param scheduler specific parameter eg. runq for credit2
+ * @parm sched_param parameter of the scheduler of the cpupool eg. runq for credit2
  * return 0 on success, -1 on failure
  */
 int xc_cpupool_create(xc_interface *xch,
                       uint32_t *ppoolid,
                       uint32_t sched_id,
-                      xc_schedparam_t sched_param);
+                      xc_schedparam_t * sched_param);
 
 /**
  * Destroy a cpupool. Pool must be unused and have no cpu assigned.

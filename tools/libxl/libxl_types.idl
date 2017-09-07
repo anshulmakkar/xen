@@ -192,15 +192,15 @@ libxl_scheduler = Enumeration("scheduler", [
     (7, "arinc653"),
     (8, "rtds"),
     (9, "null"),
-    ], init_val ="LIBXL_SCHEDULER_CREDIT2")
+    ])
 
 # consistent with sched_credit2.c
 libxl_credit2_runqueue = Enumeration("credit2_runqueue", [
-    (-1, "UNKNOWN"),
     (0, "CORE"),
     (1, "SOCKET"),
     (2, "NODE"),
     (3, "ALL"),
+    (0, "DEFAULT"),
     ])
 
 # Consistent with SHUTDOWN_* in sched.h (apart from UNKNOWN)
